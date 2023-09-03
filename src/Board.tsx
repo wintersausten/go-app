@@ -1,32 +1,27 @@
 import './Board.css';
 
 import { memo, useState } from 'react';
+import { Stone as StoneType } from './Engine.tsx';
 
-enum Stone {
-    EMPTY,
-    WHITE,
-    BLACK
-  }
-
-const Stone = memo(({ intersection }: { intersection: number }) => {
+const Stone = memo(({ intersection }: { intersection: StoneType }) => {
   const colorCSS = {
-    [Stone.EMPTY]: '',
-    [Stone.WHITE]: 'white',
-    [Stone.BLACK]: 'black'
+    [StoneType.EMPTY]: '',
+    [StoneType.WHITE]: 'white',
+    [StoneType.BLACK]: 'black'
   }
   const classes = `stone ${colorCSS[intersection]}`;
   return <span className={classes} />
 })
 
 function Board({ size }: { size: number }) {
-  const [boardArray, setBoardArray] = useState(Array(size*size).fill(Stone.EMPTY));
+  const [boardArray, setBoardArray] = useState(Array(size*size).fill(StoneType.EMPTY));
   const [turnNum, setTurnNum] = useState(1);
 
   const handleIntersectionClick = (index: number) => {
-    if (boardArray[index] !== Stone.EMPTY) return;
+    if (boardArray[index] !== StoneType.EMPTY) return;
   
     const newBoardArray = [...boardArray];
-    newBoardArray[index] = turnNum % 2 == 0 ? Stone.WHITE : Stone.BLACK;
+    newBoardArray[index] = turnNum % 2 == 0 ? StoneType.WHITE : StoneType.BLACK;
     
     setBoardArray(newBoardArray);
     setTurnNum(turnNum + 1);
