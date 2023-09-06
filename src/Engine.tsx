@@ -1,8 +1,13 @@
 export enum Stone {
-  EMPTY,
-  WHITE,
-  BLACK
-};
+    WHITE,
+    BLACK
+}
+export class Intersection {
+  stone: Stone | null = null;
+  isEmpty(): boolean {
+    return this.stone === null;
+  }
+}
 
 export type Move = {
   readonly x: number,
@@ -12,7 +17,7 @@ export type Move = {
 
 export interface Game {
   playMove(move: Move): void;
-  getBoard(): Stone[][];
+  getBoard(): Intersection[][];
   getTurn(): number;
   getLegalMoves(stoneType?: Stone): Move[];
   getResult(): unknown;
@@ -21,19 +26,24 @@ export interface Game {
 };
 
 export class LocalGame implements Game{
-  private board: Stone[][];
+  private board: Intersection[][];
   private turn: number;
   
   constructor(boardSize: number) {
-    this.board = Array.from({length: boardSize}, () => Array(boardSize).fill(Stone.EMPTY));
+    this.board = Array.from({length: boardSize}, () => Array(boardSize).fill(new Intersection()));
     this.turn = 1;
   }
 
+  isValidStone = (stone: Stone) => stone;
+
   playMove(move: Move): void {
+    if(move.stone !== undefined && !this.isValidStone(move.stone)) {
+        throw Error(`Cannot make a move with ${Stone[move.stone]} during `)
+      }
       
   }
 
-  getBoard(): Stone[][] {
+  getBoard(): Intersection[][] {
     return this.board;
   }
 

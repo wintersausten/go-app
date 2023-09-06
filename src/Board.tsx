@@ -1,31 +1,44 @@
 import './Board.css';
 
 import { memo, useState } from 'react';
-import { Stone as StoneType } from './Engine.tsx';
+import update from 'immutability-helper';
 
-const Stone = memo(({ intersection }: { intersection: StoneType }) => {
-  const colorCSS = {
-    [StoneType.EMPTY]: '',
-    [StoneType.WHITE]: 'white',
-    [StoneType.BLACK]: 'black'
+import { Intersection, Stone as StoneType } from './Engine.tsx';
+
+const Stone = memo(
+  ({ intersection }: { intersection: Intersection }) => {
+    const intersectionCSSResolver = (intersection: Intersection) => {
+      if (intersection.isEmpty()) {
+        return 'empty';
+      } else if (intersection.stone === StoneType.WHITE) {
+        return 'white';
+      } else {
+        return 'black';
+      }
+    }
+    const classes = `stone ${intersectionCSSResolver(intersection)}`;
+    return <span className={classes} />
   }
-  const classes = `stone ${colorCSS[intersection]}`;
-  return <span className={classes} />
-})
+)
 
 function Board({ size }: { size: number }) {
-  const [boardArray, setBoardArray] = useState(Array(size*size).fill(StoneType.EMPTY));
+  const [boardArray, setBoardArray] = useState(Array.from({ length: size * size }, () => new Intersection()));
   const [turnNum, setTurnNum] = useState(1);
 
   const handleIntersectionClick = (index: number) => {
-    if (boardArray[index] !== StoneType.EMPTY) return;
+    if (!boardArray[index].isEmpty()) return;
   
-    const newBoardArray = [...boardArray];
-    newBoardArray[index] = turnNum % 2 == 0 ? StoneType.WHITE : StoneType.BLACK;
+    const newBoardArray = update(boardArray, {
+      [index]: {
+        stone: {
+          $set: turnNum % 2 == 0 ? StoneType.WHITE : StoneType.BLACK
+        }
+      }
+    });
     
     setBoardArray(newBoardArray);
     setTurnNum(turnNum + 1);
-    }
+  };
 
   const gridStyle = {
     gridTemplateRows: `repeat(${size}, 1fr)`,

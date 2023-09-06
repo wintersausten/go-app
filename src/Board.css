@@ -52,9 +52,12 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  opacity: 0;
   z-index: 1; /* This ensures the circle stays above the lines */
   transition: opacity 0.2s ease;
+}
+
+.stone.empty {
+  opacity: 0;
 }
 
 .stone.black {
