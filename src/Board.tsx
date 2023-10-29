@@ -1,16 +1,19 @@
+// NEXT STEPS:
+// Refactor logic to use 2D array implementation of board
+// Setup a simple playMove to test the new strategy / observer implementation
+// Then move on to implement the rest of the game logic
 import './Board.css';
 
 import { memo, useState } from 'react';
-import update from 'immutability-helper';
 
-import { Intersection, Stone as StoneType } from './Engine.tsx';
+import { Intersection, StoneType, GameState, IGameStrategy } from './Engine.tsx';
 
 const Stone = memo(
   ({ intersection }: { intersection: Intersection }) => {
     const intersectionCSSResolver = (intersection: Intersection) => {
       if (intersection.isEmpty()) {
         return 'empty';
-      } else if (intersection.stone === StoneType.WHITE) {
+      } else if (intersection.stone.type === StoneType.WHITE) { // TODO: I've verified that stone isn't null with isEmpty check -- how do I tell typescript?
         return 'white';
       } else {
         return 'black';
@@ -21,33 +24,30 @@ const Stone = memo(
   }
 )
 
-function Board({ size }: { size: number }) {
-  const [boardArray, setBoardArray] = useState(Array.from({ length: size * size }, () => new Intersection()));
-  const [turnNum, setTurnNum] = useState(1);
+function Board({ gameStrategy }: { gameStrategy: IGameStrategy }) {
+  const [gameState, setGameState] = useState(gameStrategy.getGameState());
 
-  const handleIntersectionClick = (index: number) => {
-    if (!boardArray[index].isEmpty()) return;
-  
-    const newBoardArray = update(boardArray, {
-      [index]: {
-        stone: {
-          $set: turnNum % 2 == 0 ? StoneType.WHITE : StoneType.BLACK
-        }
-      }
-    });
-    
-    setBoardArray(newBoardArray);
-    setTurnNum(turnNum + 1);
+  const size = gameStrategy.getBoardSize();
+
+  const flattenIndex = (rowIndex: number, colIndex: number) => ((rowIndex * size) + colIndex);
+
+
+  const gameStateCallback = (newState: GameState) => setGameState(newState);
+  gameStrategy.subscribe(gameStateCallback);
+
+  const handleIntersectionClick = (rowIndex: number, colIndex: number) => {
+    if (!gameState.board[rowIndex][colIndex].isEmpty()) return;
+    //gameStrategy.playMove();
   };
 
   const gridStyle = {
     gridTemplateRows: `repeat(${size}, 1fr)`,
     gridTemplateColumns: `repeat(${size}, 1fr)`,
-    '--stone-hover-color': turnNum % 2 == 0 ? 'var(--stone-color-white)' : 'var(--stone-color-black)'
+    '--stone-hover-color': gameState.turnNum % 2 == 0 ? 'var(--stone-color-white)' : 'var(--stone-color-black)'
   }
-  
+
   // Functions to generate grid cell css - grid lines that would extend outside square bounds made transparent
-  const itemStyles = {
+  const intersectionStyles = {
     '--border-after-color': (index: number) => {
         if ((index + 1) % size === 0) {
             return 'transparent';
@@ -61,21 +61,28 @@ function Board({ size }: { size: number }) {
         return 'grey';
     }
   };
-  return (
-    <div id="board" style={gridStyle}>
-      {boardArray.map((intersection, index) => (
+
+  const renderIntersections = () => {
+    return gameState.board.map((intersectionRow: Intersection[], rowIndex: number) =>
+      intersectionRow.map((intersection: Intersection, colIndex: number) => (
         <div 
-          key={index}
+          key={flattenIndex(rowIndex, colIndex)}
           className="grid-item"
-          onClick={() => handleIntersectionClick(index)}
+          onClick={() => handleIntersectionClick(rowIndex, colIndex)}
           style={{
-            '--border-before-color': itemStyles['--border-before-color'](index),
-            '--border-after-color': itemStyles['--border-after-color'](index)
+            '--border-before-color': intersectionStyles['--border-before-color'](flattenIndex(rowIndex, colIndex)),
+            '--border-after-color': intersectionStyles['--border-after-color'](flattenIndex(rowIndex, colIndex))
           }}
           >
           <Stone intersection={intersection} />
         </div> 
-      ))}
+      ))
+    );
+  }
+  
+  return (
+    <div id="board" style={gridStyle}>
+      {renderIntersections()} 
     </div>
   );
 }
