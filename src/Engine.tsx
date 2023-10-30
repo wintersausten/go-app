@@ -70,7 +70,7 @@ export class LocalGameStrategy implements IGameStrategy{
   private subscribers: Array<(state: GameState) => void> = []; 
 
   constructor(boardSize: number) {
-    this.board = Array.from({length: boardSize}, () => Array(boardSize).fill(new Intersection()));
+    this.board = Array.from({length: boardSize}, () => Array.from({length: boardSize}, () => new Intersection()));
     this.turnNum = 1;
     this.boardSize = boardSize;
   }
@@ -100,7 +100,7 @@ export class LocalGameStrategy implements IGameStrategy{
     }
 
     // Add stone to board
-    this.board[move.y][move.x].stone = new Stone(move.stoneType);
+    this.board[move.x][move.y].stone = new Stone(move.stoneType);
 
     // // Iterate cardinally around intersection
     // const source = this.board[move.y][move.x];

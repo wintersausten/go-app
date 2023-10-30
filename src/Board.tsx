@@ -1,14 +1,10 @@
-// NEXT STEPS:
-// Refactor logic to use 2D array implementation of board
-// Setup a simple playMove to test the new strategy / observer implementation
-// Then move on to implement the rest of the game logic
 import './Board.css';
 
-import { memo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Intersection, StoneType, GameState, IGameStrategy } from './Engine.tsx';
 
-const Stone = memo(
+const Stone = 
   ({ intersection }: { intersection: Intersection }) => {
     const intersectionCSSResolver = (intersection: Intersection) => {
       if (intersection.isEmpty()) {
@@ -22,22 +18,22 @@ const Stone = memo(
     const classes = `stone ${intersectionCSSResolver(intersection)}`;
     return <span className={classes} />
   }
-)
 
 function Board({ gameStrategy }: { gameStrategy: IGameStrategy }) {
   const [gameState, setGameState] = useState(gameStrategy.getGameState());
+
+  useEffect(() => {
+    const gameStateCallback = (newState: GameState) => setGameState(newState);
+    gameStrategy.subscribe(gameStateCallback);
+  });
 
   const size = gameStrategy.getBoardSize();
 
   const flattenIndex = (rowIndex: number, colIndex: number) => ((rowIndex * size) + colIndex);
 
-
-  const gameStateCallback = (newState: GameState) => setGameState(newState);
-  gameStrategy.subscribe(gameStateCallback);
-
   const handleIntersectionClick = (rowIndex: number, colIndex: number) => {
     if (!gameState.board[rowIndex][colIndex].isEmpty()) return;
-    //gameStrategy.playMove();
+    gameStrategy.playMove({x: rowIndex, y: colIndex});
   };
 
   const gridStyle = {
